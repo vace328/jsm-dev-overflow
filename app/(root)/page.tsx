@@ -3,6 +3,8 @@ import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/navigation/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
+// import { handleError } from "@/lib/handlers/error";
+// import { ValidationError } from "@/lib/http-errors";
 import Link from "next/link";
 
 const questions = [
@@ -45,10 +47,24 @@ const questions = [
     createdAt: new Date("2021-09-01"),
   },
 ];
+
+// const test = async () => {
+//   try {
+//     throw new ValidationError({
+//       title: ["Required"],
+//       tags: ["'JavaScript' is not a vaild tag"],
+//     });
+//   } catch (error) {
+//     return handleError(error);
+//   }
+// };
 interface SearchParams {
   searchParams: Promise<{ [key: string]: string }>;
 }
 const Home = async ({ searchParams }: SearchParams) => {
+  // const result = await test();
+  // console.log(result);
+
   const { query = "", filter = "" } = await searchParams;
 
   const filteredQuestions = questions.filter((question) => {
