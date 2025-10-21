@@ -3,6 +3,7 @@
 import AuthForm from "@/components/forms/AuthForm";
 import React from "react";
 import { SignInSchema } from "@/lib/validations";
+import { signInWithCredentials } from "@/lib/actions/auth.action";
 
 const SignIn = () => {
   return (
@@ -11,7 +12,7 @@ const SignIn = () => {
       schema={SignInSchema}
       defaultValues={{ email: "", password: "" }}
       // onSubmit={signInWithCredentials}
-      onSubmit={(data) => Promise.resolve({ success: true, data })}
+      onSubmit={signInWithCredentials}
     />
   );
 };
