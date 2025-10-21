@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+// import { auth } from "@/auth";
 import QuestionCard from "@/components/cards/QuestionCard";
 import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/navigation/LocalSearch";
@@ -75,8 +75,8 @@ const Home = async ({ searchParams }: SearchParams) => {
   // const result = await test();
   // console.log(result);
 
-  const session = await auth();
-  console.log("Session:", session);
+  // const session = await auth();
+  // console.log("Session:", session);
   const { query = "", filter = "" } = await searchParams;
 
   const filteredQuestions = questions.filter((question) => {
