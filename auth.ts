@@ -2,10 +2,50 @@ import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import { api } from "./lib/api";
-import { IAccountDoc } from "./database/account.model";
+import Account, { IAccountDoc } from "./database/account.model";
+import { SignInSchema } from "./lib/validations";
+import User from "./database/user.model";
+import bcrypt from "bcryptjs";
+import Credentials from "next-auth/providers/credentials";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [GitHub, Google],
+  providers: [
+    GitHub,
+    Google,
+    Credentials({
+      async authorize(credentials) {
+        const validatedFields = SignInSchema.safeParse(credentials);
+
+        if (!validatedFields.success) return null;
+
+        const { email, password } = validatedFields.data;
+
+        const existingAccount = await Account.findOne({
+          provider: "credentials",
+          providerAccountId: email,
+        });
+
+        if (!existingAccount) return null;
+
+        const existingUser = await User.findById(existingAccount.userId);
+        if (!existingUser) return null;
+
+        const isValidPassword = await bcrypt.compare(
+          password,
+          existingAccount.password!
+        );
+
+        if (!isValidPassword) return null;
+
+        return {
+          id: existingUser.id,
+          name: existingUser.name,
+          email: existingUser.email,
+          image: existingUser.image,
+        };
+      },
+    }),
+  ],
   callbacks: {
     async session({ session, token }) {
       session.user.id = token.sub as string;
