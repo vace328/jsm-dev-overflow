@@ -71,23 +71,23 @@ const AuthForm = <T extends FieldValues>({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="mt-10 space-y-6"
       >
-        {Object.keys(defaultValues).map((fieldName) => (
+        {Object.keys(defaultValues).map((field) => (
           <FormField
-            key={fieldName}
+            key={field}
             control={form.control}
-            name={fieldName as Path<T>}
-            render={({ field: fieldProps }) => (
+            name={field as Path<T>}
+            render={({ field }) => (
               <FormItem className="flex w-full flex-col gap-2.5">
                 <FormLabel className="paragraph-medium text-dark400_light700">
-                  {fieldName === "email"
+                  {field.name === "email"
                     ? "Email Address"
-                    : fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}
+                    : field.name.charAt(0).toUpperCase() + field.name.slice(1)}
                 </FormLabel>
                 <FormControl>
                   <Input
                     required
-                    type={fieldName === "password" ? "password" : "text"}
-                    {...fieldProps}
+                    type={field.name === "password" ? "password" : "text"}
+                    {...field}
                     className="paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
                   />
                 </FormControl>
@@ -110,7 +110,7 @@ const AuthForm = <T extends FieldValues>({
 
         {formType === "SIGN_IN" ? (
           <p>
-            Don`&apos`t have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href={ROUTES.SIGN_UP}
               className="paragraph-semibold primary-text-gradient"

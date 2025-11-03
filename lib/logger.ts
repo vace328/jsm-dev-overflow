@@ -12,7 +12,7 @@ const logger = pino({
           options: {
             colorize: true,
             ignore: "pid,hostname",
-            translateTime: " SYS:standard",
+            translateTime: "SYS:standard",
           },
         }
       : undefined,

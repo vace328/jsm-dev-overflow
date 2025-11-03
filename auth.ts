@@ -1,12 +1,13 @@
+import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+
+import { IAccountDoc } from "./database/account.model";
+import { IUserDoc } from "./database/user.model";
 import { api } from "./lib/api";
-import Account, { IAccountDoc } from "./database/account.model";
 import { SignInSchema } from "./lib/validations";
-import User from "./database/user.model";
-import bcrypt from "bcryptjs";
-import Credentials from "next-auth/providers/credentials";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -16,33 +17,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         const validatedFields = SignInSchema.safeParse(credentials);
 
-        if (!validatedFields.success) return null;
+        if (validatedFields.success) {
+          const { email, password } = validatedFields.data;
 
-        const { email, password } = validatedFields.data;
+          const { data: existingAccount } = (await api.accounts.getByProvider(
+            email
+          )) as ActionResponse<IAccountDoc>;
 
-        const existingAccount = await Account.findOne({
-          provider: "credentials",
-          providerAccountId: email,
-        });
+          if (!existingAccount) return null;
 
-        if (!existingAccount) return null;
+          const { data: existingUser } = (await api.users.getById(
+            existingAccount.userId.toString()
+          )) as ActionResponse<IUserDoc>;
 
-        const existingUser = await User.findById(existingAccount.userId);
-        if (!existingUser) return null;
+          if (!existingUser) return null;
 
-        const isValidPassword = await bcrypt.compare(
-          password,
-          existingAccount.password!
-        );
+          const isValidPassword = await bcrypt.compare(
+            password,
+            existingAccount.password!
+          );
 
-        if (!isValidPassword) return null;
-
-        return {
-          id: existingUser.id,
-          name: existingUser.name,
-          email: existingUser.email,
-          image: existingUser.image,
-        };
+          if (isValidPassword) {
+            return {
+              id: existingUser.id,
+              name: existingUser.name,
+              email: existingUser.email,
+              image: existingUser.image,
+            };
+          }
+        }
+        return null;
       },
     }),
   ],
@@ -59,11 +63,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               ? token.email!
               : account.providerAccountId
           )) as ActionResponse<IAccountDoc>;
+
         if (!success || !existingAccount) return token;
+
         const userId = existingAccount.userId;
 
         if (userId) token.sub = userId.toString();
       }
+
       return token;
     },
     async signIn({ user, profile, account }) {
@@ -79,6 +86,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             ? (profile?.login as string)
             : (user.name?.toLowerCase() as string),
       };
+
       const { success } = (await api.auth.oAuthSignIn({
         user: userInfo,
         provider: account.provider as "github" | "google",

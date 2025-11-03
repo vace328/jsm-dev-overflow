@@ -1,7 +1,7 @@
 import React from "react";
 
 const Tags = () => {
-  return <div>Tafs</div>;
+  return <div>Tags</div>;
 };
 
 export default Tags;

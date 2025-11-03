@@ -7,7 +7,7 @@ import TagQuestion from "@/database/tag-question.model";
 import Tag from "@/database/tag.model";
 
 import action from "../handlers/action";
-import { handleError } from "../handlers/error";
+import handleError from "../handlers/error";
 import { AskQuestionSchema } from "../validations";
 
 export async function createQuestion(
@@ -30,8 +30,6 @@ export async function createQuestion(
   session.startTransaction();
 
   try {
-    console.log(userId);
-
     const [question] = await Question.create(
       [{ title, content, author: userId }],
       { session }

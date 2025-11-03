@@ -1,13 +1,14 @@
-import { handleError } from "@/lib/handlers/error";
-import { SignInWithOAuthSchema } from "@/lib/validations";
-import { ValidationError } from "@/lib/http-errors";
-import z from "zod";
 import mongoose from "mongoose";
-import slugify from "slugify";
-import dbConnect from "@/lib/mongoose";
-import User from "@/database/user.model";
-import Account from "@/database/account.model";
 import { NextResponse } from "next/server";
+import slugify from "slugify";
+
+import Account from "@/database/account.model";
+import User from "@/database/user.model";
+import handleError from "@/lib/handlers/error";
+import { ValidationError } from "@/lib/http-errors";
+import dbConnect from "@/lib/mongoose";
+import { SignInWithOAuthSchema } from "@/lib/validations";
+import z from "zod";
 
 export async function POST(request: Request) {
   const { provider, providerAccountId, user } = await request.json();
@@ -24,11 +25,11 @@ export async function POST(request: Request) {
       user,
     });
 
-    if (!validatedData.success) {
+    if (!validatedData.success)
       throw new ValidationError(
         z.flattenError(validatedData.error).fieldErrors
       );
-    }
+
     const { name, username, email, image } = user;
 
     const slugifiedUsername = slugify(username, {
@@ -47,12 +48,9 @@ export async function POST(request: Request) {
     } else {
       const updatedData: { name?: string; image?: string } = {};
 
-      if (existingUser.name !== name) {
-        updatedData.name = name;
-      }
-      if (existingUser.image !== image) {
-        updatedData.image = image;
-      }
+      if (existingUser.name !== name) updatedData.name = name;
+      if (existingUser.image !== image) updatedData.image = image;
+
       if (Object.keys(updatedData).length > 0) {
         await User.updateOne(
           { _id: existingUser._id },
@@ -60,6 +58,7 @@ export async function POST(request: Request) {
         ).session(session);
       }
     }
+
     const existingAccount = await Account.findOne({
       userId: existingUser._id,
       provider,
@@ -80,10 +79,12 @@ export async function POST(request: Request) {
         { session }
       );
     }
+
     await session.commitTransaction();
+
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    session.abortTransaction();
+    await session.abortTransaction();
     return handleError(error, "api") as APIErrorResponse;
   } finally {
     session.endSession();

@@ -1,9 +1,9 @@
+import { NextResponse } from "next/server";
 import Account from "@/database/account.model";
-import { handleError } from "@/lib/handlers/error";
+import handleError from "@/lib/handlers/error";
 import { ForbiddenError } from "@/lib/http-errors";
 import dbConnect from "@/lib/mongoose";
 import { AccountSchema } from "@/lib/validations";
-import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
@@ -20,22 +20,22 @@ export async function GET() {
   }
 }
 
-// Create User action
 export async function POST(request: Request) {
   try {
     await dbConnect();
-
     const body = await request.json();
+
     const validatedData = AccountSchema.parse(body);
 
     const existingAccount = await Account.findOne({
       provider: validatedData.provider,
-      provideAccountId: validatedData.providerAccountId,
+      providerAccountId: validatedData.providerAccountId,
     });
 
-    if (existingAccount) {
-      throw new ForbiddenError("Account with the same provider alredy exists");
-    }
+    if (existingAccount)
+      throw new ForbiddenError(
+        "An account with the same provider already exists"
+      );
 
     const newAccount = await Account.create(validatedData);
 

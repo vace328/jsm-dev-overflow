@@ -8,9 +8,9 @@ import Account from "@/database/account.model";
 import User from "@/database/user.model";
 
 import action from "../handlers/action";
-import { handleError } from "../handlers/error";
-import { SignInSchema, SignUpSchema } from "../validations";
+import handleError from "../handlers/error";
 import { NotFoundError } from "../http-errors";
+import { SignInSchema, SignUpSchema } from "../validations";
 
 export async function signUpWithCredentials(
   params: AuthCredentials
@@ -25,7 +25,6 @@ export async function signUpWithCredentials(
 
   const session = await mongoose.startSession();
   session.startTransaction();
-  let committed = false;
 
   try {
     const existingUser = await User.findOne({ email }).session(session);
@@ -60,20 +59,19 @@ export async function signUpWithCredentials(
     );
 
     await session.commitTransaction();
-    committed = true;
+
     await signIn("credentials", { email, password, redirect: false });
 
     return { success: true };
   } catch (error) {
-    if (!committed) {
-      await session.abortTransaction();
-    }
+    await session.abortTransaction();
 
     return handleError(error) as ErrorResponse;
   } finally {
     await session.endSession();
   }
 }
+
 export async function signInWithCredentials(
   params: Pick<AuthCredentials, "email" | "password">
 ): Promise<ActionResponse> {
@@ -88,13 +86,14 @@ export async function signInWithCredentials(
   try {
     const existingUser = await User.findOne({ email });
 
-    if (!existingUser) throw new NotFoundError("User not found");
+    if (!existingUser) throw new NotFoundError("User");
 
     const existingAccount = await Account.findOne({
       provider: "credentials",
       providerAccountId: email,
     });
-    if (!existingAccount) throw new NotFoundError("Account not found");
+
+    if (!existingAccount) throw new NotFoundError("Account");
 
     const passwordMatch = await bcrypt.compare(
       password,

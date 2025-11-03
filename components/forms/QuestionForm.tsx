@@ -2,12 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MDXEditorMethods } from "@mdxeditor/editor";
+import { ReloadIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import React, { useRef, useTransition } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
+import ROUTES from "@/constants/routes";
+import { toast } from "sonner";
+import { createQuestion } from "@/lib/actions/question.action";
 import { AskQuestionSchema } from "@/lib/validations";
 
+import TagCard from "../cards/TagCard";
 import { Button } from "../ui/button";
 import {
   Form,
@@ -19,13 +26,6 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
-import z from "zod";
-import TagCard from "../cards/TagCard";
-import { createQuestion } from "@/lib/actions/question.action";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import ROUTES from "@/constants/routes";
-import { ReloadIcon } from "@radix-ui/react-icons";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
@@ -50,10 +50,10 @@ const QuestionForm = () => {
     field: { value: string[] }
   ) => {
     console.log(field, e);
-
     if (e.key === "Enter") {
       e.preventDefault();
       const tagInput = e.currentTarget.value.trim();
+
       if (tagInput && tagInput.length < 15 && !field.value.includes(tagInput)) {
         form.setValue("tags", [...field.value, tagInput]);
         e.currentTarget.value = "";
@@ -90,10 +90,12 @@ const QuestionForm = () => {
   ) => {
     startTransition(async () => {
       const result = await createQuestion(data);
+
       if (result.success) {
         toast("Success", {
           description: "Question created successfully",
         });
+
         if (result.data) router.push(ROUTES.QUESTION(result.data._id));
       } else {
         toast.error(`Error ${result.status}`, {
@@ -171,8 +173,8 @@ const QuestionForm = () => {
                     onKeyDown={(e) => handleInputKeyDown(e, field)}
                   />
                   {field.value.length > 0 && (
-                    <div className="flex-start mt-2.5 gap-2.5 flex-wrap">
-                      {field.value.map((tag: string) => (
+                    <div className="flex-start mt-2.5 flex-wrap gap-2.5">
+                      {field?.value?.map((tag: string) => (
                         <TagCard
                           key={tag}
                           _id={tag}
