@@ -148,7 +148,7 @@ export async function editQuestion(
     if (tagsToRemove.length > 0) {
       const tagIdsToRemove = tagsToRemove.map((tag: ITagDoc) => tag._id);
       await Tag.updateMany(
-        { _id: { $in: tagsToRemove } },
+        { _id: { $in: tagIdsToRemove } },
         { $inc: { questions: -1 } },
         { session }
       );
@@ -246,7 +246,7 @@ export async function getQuestions(
       sortCriteria = { createdAt: -1 };
       break;
     case "popular":
-      sortCriteria = { upwotes: -1 };
+      sortCriteria = { upvotes: -1 };
       break;
     default:
       sortCriteria = { createdAt: -1 };
@@ -257,7 +257,7 @@ export async function getQuestions(
     const totalQuestions = await Question.countDocuments(filterQuery);
     const questions = await Question.find(filterQuery)
       .populate("tags", "name")
-      // .populate("author", "name image")
+      .populate("author", "name image")
       .lean()
       .sort(sortCriteria)
       .skip(skip)
