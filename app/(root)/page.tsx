@@ -2,50 +2,11 @@ import QuestionCard from "@/components/cards/QuestionCard";
 import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
+import DataRenderer from "@/components/ui/DataRenderer";
 import ROUTES from "@/constants/routes";
+import { EMPTY_QUESTION } from "@/constants/states";
 import { getQuestions } from "@/lib/actions/question.action";
 import Link from "next/link";
-
-// const questions = [
-//   {
-//     _id: "1",
-//     title: "How to learn React?",
-//     description: "I want to learn React, can anyone help me?",
-//     tags: [
-//       { _id: "1", name: "React" },
-//       { _id: "2", name: "JavaScript" },
-//     ],
-//     author: {
-//       _id: "1",
-//       name: "John Doe",
-//       image:
-//         "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
-//     },
-//     upvotes: 10,
-//     answers: 5,
-//     views: 100,
-//     createdAt: new Date(),
-//   },
-//   {
-//     _id: "2",
-//     title: "How to learn JavaScript?",
-//     description: "I want to learn JavaScript, can anyone help me?",
-//     tags: [
-//       { _id: "1", name: "JavaScript" },
-//       { _id: "2", name: "JavaScript" },
-//     ],
-//     author: {
-//       _id: "1",
-//       name: "John Doe",
-//       image:
-//         "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
-//     },
-//     upvotes: 10,
-//     answers: 5,
-//     views: 100,
-//     createdAt: new Date("2021-09-01"),
-//   },
-// ];
 
 interface SearchParams {
   searchParams: Promise<{ [key: string]: string }>;
@@ -82,25 +43,19 @@ const Home = async ({ searchParams }: SearchParams) => {
         ></LocalSearch>
       </section>
       <HomeFilter />
-      {success ? (
-        <div className="mt-10 flex w-full flex-col gap-6">
-          {questions && questions.length > 0 ? (
-            questions.map((question) => (
+      <DataRenderer
+        success={success}
+        data={questions}
+        error={error}
+        empty={EMPTY_QUESTION}
+        render={(questions) => (
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {questions.map((question) => (
               <QuestionCard key={question._id} question={question} />
-            ))
-          ) : (
-            <div className="mt-10 flex w-full items-center justify-center">
-              <p className="text-dark400_light700">No questions found.</p>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="mt-10 flex w-full items-center justify-center">
-          <p className="text-dark400_light700">
-            {error?.message || "Failed to fetch questions"}
-          </p>
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      />
     </>
   );
 };
